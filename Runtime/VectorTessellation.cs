@@ -57,6 +57,8 @@ namespace Unity.VectorGraphics
                 get { return m_StepSize; }
                 set { m_StepSize = Mathf.Clamp(value, Epsilon, 1.0f); }
             }
+
+            public bool AllowConcavePaths;
         }
 
         /// <summary>

@@ -147,7 +147,7 @@ namespace Unity.VectorGraphics
 
                 shapeColor.a *= vectorShape.Fill.Opacity;
 
-                if (isConvex && vectorShape.Contours.Length == 1)
+                if ((isConvex && vectorShape.Contours.Length == 1) || tessellationOptions.AllowConcavePaths)
                 {
                     TessellateConvexContour(vectorShape, vectorShape.PathProps.Stroke, shapeColor, geoms, tessellationOptions);
                 }
