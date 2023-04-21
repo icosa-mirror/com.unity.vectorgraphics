@@ -179,7 +179,7 @@ namespace Unity.VectorGraphics
             set { m_TextureSize = value; }
         }
 
-        private int m_TextureSize = 256;
+        private int m_TextureSize = 1024;
 
         /// <summary>The width of the texture (only used when importing to a texture).</summary>
         public int TextureWidth
@@ -188,7 +188,7 @@ namespace Unity.VectorGraphics
             set { m_TextureWidth = value; }
         }
 
-        private int m_TextureWidth = 256;
+        private int m_TextureWidth = 1024;
 
         /// <summary>The height of the texture (only used when importing to a texture).</summary>
         public int TextureHeight
