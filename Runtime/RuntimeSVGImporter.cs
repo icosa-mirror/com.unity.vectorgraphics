@@ -281,6 +281,15 @@ namespace Unity.VectorGraphics
             return VectorUtils.TessellateScene(sceneInfo.Scene, tessOptions, sceneInfo.NodeOpacity);
         }
 
+
+        public Mesh ImportAsMesh(string assetPath)
+        {
+            var mesh = new Mesh();
+            var geometry = _Init(assetPath, out Rect rect);
+            VectorUtils.FillMesh(mesh, geometry, 1.0f);
+            return mesh;
+        }
+
         public Sprite ImportAsVectorSprite(string assetPath)
         {
             var name = Path.GetFileNameWithoutExtension(assetPath);
@@ -293,6 +302,11 @@ namespace Unity.VectorGraphics
         {
             var name = Path.GetFileNameWithoutExtension(assetPath);
             var geometry = _Init(assetPath, out Rect rect);
+            return GeometryToTexture(geometry, rect, name);
+        }
+
+        public Texture2D GeometryToTexture(List<VectorUtils.Geometry> geometry, Rect rect, string name)
+        {
             var sprite = BuildSpriteFromGeometry(geometry, rect);
             return GenerateTexture2D(sprite, name);
         }
@@ -368,11 +382,11 @@ namespace Unity.VectorGraphics
             return tex;
         }
 
-        private Material MaterialForSVGSprite(Sprite sprite)
+        public static Material MaterialForSVG(bool hasTexture)
         {
             const string k_PackagePath = "Packages/com.unity.vectorgraphics";
             string path;
-            if (sprite.texture != null)
+            if (hasTexture)
                 // When texture is present, use the VectorGradient shader
                 path = k_PackagePath + "/Runtime/Materials/Unlit_VectorGradient";
             else
@@ -381,6 +395,11 @@ namespace Unity.VectorGraphics
             path += ".mat";
 
             return AssetDatabase.LoadAssetAtPath<Material>(path);
+        }
+
+        private Material MaterialForSVGSprite(Sprite sprite)
+        {
+            return MaterialForSVG(sprite.texture != null);
         }
 
         private void ComputeTextureDimensionsFromBounds(Sprite sprite, int textureSize, out int textureWidth,
