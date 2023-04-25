@@ -147,7 +147,57 @@ namespace Unity.VectorGraphics
 
                 shapeColor.a *= vectorShape.Fill.Opacity;
 
-                if ((isConvex && vectorShape.Contours.Length == 1) || tessellationOptions.AllowConcavePaths)
+                if (tessellationOptions.OutlinesOnly)
+                {
+                    if (isConvex || !tessellationOptions.ConvexOutlinesOnly)
+                    {
+                        // Simple tesselation allowing concave shapes. But no holes.
+                        foreach (var contour in vectorShape.Contours)
+                        {
+                            var tracedShape = TraceShape(contour, vectorShape.PathProps.Stroke, tessellationOptions);
+                            geoms.Add(new Geometry
+                            {
+                                Vertices = tracedShape, Color = shapeColor,
+                                Fill = vectorShape.Fill, FillTransform = vectorShape.FillTransform
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // Tessellate the shape into convex polygons. This allows holes.
+                        var tess = new Tess();
+                        var angle = 45.0f * Mathf.Deg2Rad;
+                        var mat = Matrix2D.RotateLH(angle);
+                        var invMat = Matrix2D.RotateLH(-angle);
+
+                        foreach (var c in vectorShape.Contours)
+                        {
+                            var contour = new List<Vector2>(100);
+                            foreach (var v in VectorUtils.TraceShape(c, vectorShape.PathProps.Stroke, tessellationOptions))
+                                contour.Add(mat.MultiplyPoint(v));
+
+                            tess.AddContour(contour.Select(v => new ContourVertex { Position = new Vec3 { X = v.x, Y = v.y } }).ToArray(), ContourOrientation.Original);
+                        }
+
+                        var windingRule = (vectorShape.Fill.Mode == FillMode.OddEven) ? WindingRule.EvenOdd : WindingRule.NonZero;
+                        try
+                        {
+                            tess.Tessellate(windingRule, ElementType.Polygons, 3);
+                        }
+                        catch (Exception)
+                        {
+                            Debug.LogWarning("Shape tessellation failed, skipping...");
+                            UnityEngine.Profiling.Profiler.EndSample();
+                            return;
+                        }
+                        var vertices = tess.Vertices.Select(v => invMat.MultiplyPoint(new Vector2(v.Position.X, v.Position.Y)));
+                        if (vertices.Count() > 0)
+                        {
+                            geoms.Add(new Geometry() { Vertices = vertices.ToArray(), Color = shapeColor, Fill = vectorShape.Fill, FillTransform = vectorShape.FillTransform });
+                        }
+                    }
+                }
+                else if (isConvex && vectorShape.Contours.Length == 1)
                 {
                     TessellateConvexContour(vectorShape, vectorShape.PathProps.Stroke, shapeColor, geoms, tessellationOptions);
                 }
