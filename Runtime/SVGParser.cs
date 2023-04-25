@@ -1628,8 +1628,9 @@ namespace Unity.VectorGraphics
             float length = SVGAttribParser.ParseFloat(val.Substring(0, val.Length - 2));
             switch (unitType)
             {
-                case "em": throw new NotImplementedException();
-                case "ex": throw new NotImplementedException();
+
+                case "em": return length * 16; // Assume default font width
+                case "ex": return length * 8; // Assume default font width and height
                 case "px": return length;
                 case "in": return 90.0f * length * dpiScale;       // "1in" equals "90px" (and therefore 90 user units)
                 case "cm": return 35.43307f * length * dpiScale;   // "1cm" equals "35.43307px" (and therefore 35.43307 user units)
@@ -1830,6 +1831,7 @@ namespace Unity.VectorGraphics
             if (!string.IsNullOrEmpty(id))
             {
                 nodeIDs[id] = sceneNode;
+                sceneNode.id = id;
 
                 // Store the style layer of this node since it can be referenced later by a <use> tag
                 nodeStyleLayers[sceneNode] = styles.PeekLayer();
@@ -2994,8 +2996,8 @@ namespace Unity.VectorGraphics
 
             if (attrib == "currentColor")
             {
-                Debug.LogError("currentColor is not supported as a " + attribName + " value");
-                return;
+                Debug.LogWarning("currentColor is not supported as a " + attribName + " value");
+                attrib = "red";
             }
 
             string[] paintParts = attrib.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
