@@ -1831,7 +1831,6 @@ namespace Unity.VectorGraphics
             if (!string.IsNullOrEmpty(id))
             {
                 nodeIDs[id] = sceneNode;
-                sceneNode.id = id;
 
                 // Store the style layer of this node since it can be referenced later by a <use> tag
                 nodeStyleLayers[sceneNode] = styles.PeekLayer();
