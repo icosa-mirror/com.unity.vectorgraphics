@@ -384,17 +384,15 @@ namespace Unity.VectorGraphics
 
         public static Material MaterialForSVG(bool hasTexture)
         {
-            const string k_PackagePath = "Packages/com.unity.vectorgraphics";
             string path;
             if (hasTexture)
                 // When texture is present, use the VectorGradient shader
-                path = k_PackagePath + "/Runtime/Materials/Unlit_VectorGradient";
+                path = "Materials/Unlit_VectorGradient";
             else
-                path = k_PackagePath + "/Runtime/Materials/Unlit_Vector";
+                path = "Materials/Unlit_Vector";
 
-            path += ".mat";
 
-            return AssetDatabase.LoadAssetAtPath<Material>(path);
+            return Resources.Load<Material>(path);
         }
 
         private Material MaterialForSVGSprite(Sprite sprite)
@@ -447,40 +445,6 @@ namespace Unity.VectorGraphics
             maxTangent = Mathf.Max(0.1f, 100.0f * sceneRatio);
         }
 
-        internal static Sprite GetImportedSprite(string assetPath)
-        {
-            return AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
-        }
-
-        internal static Sprite GetImportedSprite(Object asset)
-        {
-
-            var sprite = asset as Sprite;
-            if (sprite != null)
-                return sprite;
-
-            var go = asset as GameObject;
-
-            // Try with SpriteRenderer
-            var sr = go != null ? go.GetComponent<SpriteRenderer>() : null;
-            sprite = sr != null ? sr.sprite : null;
-            if (sprite != null)
-                return sprite;
-
-            // Try with VectorImage
-            var si = go != null ? go.GetComponent<SVGImage>() : null;
-            sprite = si != null ? si.sprite : null;
-            if (sprite != null)
-                return sprite;
-
-            return null;
-        }
-
-        internal static Texture2D GetImportedTexture2D(string assetPath)
-        {
-            return AssetDatabase.LoadMainAssetAtPath(assetPath) as Texture2D;
-        }
-
         internal void TextureSizeForSpriteEditor(Sprite sprite, out int width, out int height)
         {
             var size = ((Vector2)sprite.bounds.size) * SvgPixelsPerUnit;
@@ -505,9 +469,8 @@ namespace Unity.VectorGraphics
             {
                 if (s_GradientMat == null)
                 {
-                    string gradientMatPath =
-                        "Packages/com.unity.vectorgraphics/Runtime/Materials/Unlit_VectorGradient.mat";
-                    s_GradientMat = AssetDatabase.LoadMainAssetAtPath(gradientMatPath) as Material;
+                    string gradientMatPath = "Materials/Unlit_VectorGradient.mat";
+                    s_GradientMat = Resources.Load<Material>(gradientMatPath);
                 }
 
                 mat = new Material(s_GradientMat);
@@ -516,8 +479,8 @@ namespace Unity.VectorGraphics
             {
                 if (s_VectorMat == null)
                 {
-                    string vectorMatPath = "Packages/com.unity.vectorgraphics/Runtime/Materials/Unlit_Vector.mat";
-                    s_VectorMat = AssetDatabase.LoadMainAssetAtPath(vectorMatPath) as Material;
+                    string vectorMatPath = "Materials/Unlit_Vector.mat";
+                    s_VectorMat = Resources.Load<Material>(vectorMatPath);
                 }
 
                 mat = new Material(s_VectorMat);

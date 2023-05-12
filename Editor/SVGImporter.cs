@@ -598,9 +598,9 @@ namespace Unity.VectorGraphics.Editor
             string path;
             if (sprite.texture != null)
                 // When texture is present, use the VectorGradient shader
-                path = k_PackagePath + "/Runtime/Materials/Unlit_VectorGradient";
+                path = k_PackagePath + "/Runtime/Resources/Materials/Unlit_VectorGradient";
             else
-                path = k_PackagePath + "/Runtime/Materials/Unlit_Vector";
+                path = k_PackagePath + "/Runtime/Resources/Materials/Unlit_Vector";
 
             if (SvgType == SVGType.UISVGImage)
                 path += "UI";
