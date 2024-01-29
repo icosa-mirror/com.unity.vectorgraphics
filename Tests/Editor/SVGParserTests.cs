@@ -499,6 +499,7 @@ public class SVGParserTests
         Assert.IsNull(shape.Fill);
     }
 
+    [Test]
     public void ImportSVG_UseCannotOverrideFillOnSymbolWitNoneFill()
     {
         string svg =
@@ -514,6 +515,7 @@ public class SVGParserTests
         Assert.IsNull(shape.Fill);            
     }
 
+    [Test]
     public void ImportSVG_UseCannotOverrideFillOnSymbolWithBlackFill()
     {
         string svg =
@@ -753,5 +755,26 @@ public class SVGParserTests
         var sceneInfo = SVGParser.ImportSVG(new StringReader(svg));
         SceneNode node;
         Assert.IsFalse(sceneInfo.NodeIDs.TryGetValue("Image0", out node));
+    }
+
+    [Test, Description("Case VGB-5")]
+    public void ImportSVG_ParsesBoolTiedTogether()
+    {
+        string svg =
+            @"<svg xmlns=""http://www.w3.org/2000/svg"" xmlns:xlink=""http://www.w3.org/1999/xlink"" width=""200"" height=""200"">
+               <path id=""Path0"" d=""M6 12.75a1.25 1.25 0 110 2.5z""/>
+             </svg>";
+
+        var sceneInfo = SVGParser.ImportSVG(new StringReader(svg));
+        Assert.IsTrue(sceneInfo.NodeIDs.TryGetValue("Path0", out _));
+
+        svg =
+            @"<svg xmlns=""http://www.w3.org/2000/svg"" xmlns:xlink=""http://www.w3.org/1999/xlink"" width=""200"" height=""200"">
+               <path id=""Path0"" d=""M6 12.75a1.25 1.25 0 210 2.5z""/>
+             </svg>";
+
+
+        Assert.Throws<SVGFormatException>(() => SVGParser.ImportSVG(new StringReader(svg)));
+
     }
 }

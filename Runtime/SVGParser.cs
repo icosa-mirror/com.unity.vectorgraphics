@@ -40,7 +40,7 @@ namespace Unity.VectorGraphics
                 NodeOpacity = nodeOpacities;
                 NodeIDs = nodeIDs;
             }
-        
+
             /// <summary>The vector scene.</summary>
             public Scene Scene { get; }
 
@@ -135,7 +135,7 @@ namespace Unity.VectorGraphics
                     };
                 }
             }
-            
+
             return new SceneInfo(scene, doc.sceneViewport, nodeOpacities, nodeIDs);
         }
     }
@@ -200,7 +200,7 @@ namespace Unity.VectorGraphics
         {
             if (reader.IsEmptyElement)
                 return "";
-            
+
             var text = "";
             while (reader.Read() && reader.NodeType != XmlNodeType.EndElement)
                 text += reader.Value;
@@ -920,7 +920,7 @@ namespace Unity.VectorGraphics
             ParseChildren(node, node.Name);
             if (currentSceneNode.Pop() != clipRoot)
                 throw SVGFormatException.StackError;
-            
+
             // Resolve any previous node that was referencing this clipping path
             if (!string.IsNullOrEmpty(id))
             {
@@ -988,7 +988,7 @@ namespace Unity.VectorGraphics
                 PatternTransform = patternTransform
             };
 
-            var fill = new PatternFill() { 
+            var fill = new PatternFill() {
                 Pattern = patternRoot,
                 Rect = new Rect(x, y, w, h)
             };
@@ -2143,7 +2143,7 @@ namespace Unity.VectorGraphics
             {
                 return null;
             }
-            
+
             var data = patternData[patternFill.Pattern];
 
             var nodeBounds = VectorUtils.SceneNodeBounds(node);
@@ -2452,7 +2452,7 @@ namespace Unity.VectorGraphics
                 string attrib = null;
                 if (LookupStyleOrAttribute(layers[i], attribName, inheritance, out attrib))
                     return attrib;
-                
+
                 if (inheritance == Inheritance.None)
                     break;
             }
@@ -3023,7 +3023,7 @@ namespace Unity.VectorGraphics
 
                     if (fill != null)
                         fill.Opacity = opacity;
-    
+
                     return;
                 }
             }
@@ -3115,7 +3115,30 @@ namespace Unity.VectorGraphics
 
         bool NextBool()
         {
-            return Mathf.Abs(NextFloat()) > VectorUtils.Epsilon;
+            bool result = false;
+            bool error = false;
+
+            SkipWhitespaces();
+
+            if (stringPos < attribString.Length)
+            {
+                var c = attribString[stringPos];
+                ++stringPos;
+
+                if (c != '0' && c != '1')
+                    error = true;
+                else
+                    result = c == '1';
+            }
+            else
+            {
+                error = true;
+            }
+
+            if (error)
+                throw new Exception("Expected bool at " + stringPos + " of " + attribName + " specification");
+
+            return result;
         }
 
         char NextPathCommand(bool noCommandInheritance = false)

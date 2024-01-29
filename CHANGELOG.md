@@ -1,5 +1,30 @@
 # Change log
 
+## [2.0.0-preview.24] - 2024-01-19
+
+### Fixed
+
+* Fixed RenderSpriteToTexture2D not working in builds because of wrong shader name
+
+## [2.0.0-preview.23] - 2024-01-16
+
+### Fixed
+
+* Fixed bad interaction between alpha-demultiplication and edge expansions
+
+## [2.0.0-preview.22] - 2024-01-16
+
+### Fixed
+
+* Fixed textured sprites edge artifacts [VGB-9]
+
+## [2.0.0-preview.21] - 2023-04-19
+
+### Fixed
+
+* Fixed flags parsing in paths [VGB-5]
+* Added support to preserve viewport when importing in UI Toolkit Vector Image [VGB-3]
+
 ## [2.0.0-preview.20] - 2022-08-05
 
 ### Fixed

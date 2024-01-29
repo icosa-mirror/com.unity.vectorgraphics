@@ -120,7 +120,7 @@ namespace Unity.VectorGraphics.Editor
              set { m_PreserveViewport = value; }
          }
          [SerializeField] private bool m_PreserveViewport;
- 
+
         /// <summary>Use advanced settings.</summary>
         public bool AdvancedMode {
             get { return m_AdvancedMode; }
@@ -341,7 +341,7 @@ namespace Unity.VectorGraphics.Editor
                     break;
 #if UNITY_2019_3_OR_NEWER
                 case SVGType.UIToolkit:
-                    GenerateVectorImageAsset(ctx, geometry, name);
+                    GenerateVectorImageAsset(ctx, geometry, name, rect);
                     break;
 #endif
                 default:
@@ -506,11 +506,11 @@ namespace Unity.VectorGraphics.Editor
         }
 
 #if UNITY_2019_3_OR_NEWER
-        private void GenerateVectorImageAsset(AssetImportContext ctx, List<VectorUtils.Geometry> geometry, string name)
+        private void GenerateVectorImageAsset(AssetImportContext ctx, List<VectorUtils.Geometry> geometry, string name, Rect rect)
         {
             UnityEngine.Object asset;
             Texture2D texAtlas;
-            VectorImageUtils.MakeVectorImageAsset(geometry, GradientResolution, out asset, out texAtlas);
+            VectorImageUtils.MakeVectorImageAsset(geometry, rect, GradientResolution, out asset, out texAtlas);
 
             if (asset == null)
             {
@@ -688,7 +688,7 @@ namespace Unity.VectorGraphics.Editor
             if (sprite != null)
                 return sprite;
 
-            // Try with VectorImage            
+            // Try with VectorImage
             var si = go != null ? go.GetComponent<SVGImage>() : null;
             sprite = si != null ? si.sprite : null;
             if (sprite != null)
@@ -757,7 +757,7 @@ namespace Unity.VectorGraphics.Editor
         {
             get { return SvgPixelsPerUnit; }
         }
-        
+
         /// <summary>Returns imported sprite</summary>
         public UnityEngine.Object targetObject
         {
