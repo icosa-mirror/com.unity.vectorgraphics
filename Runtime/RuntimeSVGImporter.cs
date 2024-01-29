@@ -244,7 +244,7 @@ namespace Unity.VectorGraphics
 
         private bool m_UseSVGPixelsPerUnit;
 
-        private List<VectorUtils.Geometry> _Init(string path, out Rect rect)
+        private List<VectorUtils.Geometry> _InitFromFile(string path, out Rect rect)
         {
             UpdateProperties();
             // We're using a hardcoded window size of 100x100. This way, using a pixels per point value of 100
@@ -252,7 +252,22 @@ namespace Unity.VectorGraphics
             SVGParser.SceneInfo sceneInfo;
             using (var stream = new StreamReader(path))
                 sceneInfo = SVGParser.ImportSVG(stream, ViewportOptions, 0, 1, 100, 100);
+            return _Init(sceneInfo, out rect);
+        }
 
+        private List<VectorUtils.Geometry> _InitFromString(string svg, out Rect rect)
+        {
+            UpdateProperties();
+            // We're using a hardcoded window size of 100x100. This way, using a pixels per point value of 100
+            // results in a sprite of size 1 when the SVG file has a viewbox specified.
+            SVGParser.SceneInfo sceneInfo;
+            using (var stream = new StringReader(svg))
+                sceneInfo = SVGParser.ImportSVG(stream, ViewportOptions, 0, 1, 100, 100);
+            return _Init(sceneInfo, out rect);
+        }
+
+        private List<VectorUtils.Geometry> _Init(SVGParser.SceneInfo sceneInfo, out Rect rect)
+        {
             if (sceneInfo.Scene == null || sceneInfo.Scene.Root == null)
                 throw new Exception("Wowzers!");
 
@@ -282,18 +297,18 @@ namespace Unity.VectorGraphics
         }
 
 
-        public Mesh ImportAsMesh(string assetPath)
+        public Mesh ImportAsMesh(string assetPath, bool flipYAxis = false)
         {
             var mesh = new Mesh();
-            var geometry = _Init(assetPath, out Rect rect);
-            VectorUtils.FillMesh(mesh, geometry, 1.0f);
+            var geometry = _InitFromFile(assetPath, out Rect rect);
+            VectorUtils.FillMesh(mesh, geometry, 1.0f, flipYAxis);
             return mesh;
         }
 
         public Sprite ImportAsVectorSprite(string assetPath)
         {
             var name = Path.GetFileNameWithoutExtension(assetPath);
-            var geometry = _Init(assetPath, out Rect rect);
+            var geometry = _InitFromFile(assetPath, out Rect rect);
             var sprite = BuildSpriteFromGeometry(geometry, rect);
             return GenerateSprite(sprite, name);
         }
@@ -301,8 +316,27 @@ namespace Unity.VectorGraphics
         public Texture2D ImportAsTexture(string assetPath)
         {
             var name = Path.GetFileNameWithoutExtension(assetPath);
-            var geometry = _Init(assetPath, out Rect rect);
+            var geometry = _InitFromFile(assetPath, out Rect rect);
             return GeometryToTexture(geometry, rect, name);
+        }
+
+        public Mesh ParseToMesh(string svg, bool flipYAxis = false)
+        {
+            var mesh = new Mesh();
+            var geometry = _InitFromString(svg, out Rect rect);
+            VectorUtils.FillMesh(mesh, geometry, 1.0f, flipYAxis);
+            return mesh;
+        }
+
+        public Texture2D ParseToTexture(string svg, string name)
+        {
+            var geometry = _InitFromString(svg, out Rect rect);
+            return GeometryToTexture(geometry, rect, name);
+        }
+
+        public string WrapSvgPath(string svgPath)
+        {
+            return $"<svg xmlns=\"http://www.w3.org/2000/svg\"><path d=\"{svgPath}\"/></svg>";
         }
 
         public Texture2D GeometryToTexture(List<VectorUtils.Geometry> geometry, Rect rect, string name)
