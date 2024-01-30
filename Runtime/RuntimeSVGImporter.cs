@@ -328,6 +328,18 @@ namespace Unity.VectorGraphics
             return mesh;
         }
 
+        public Scene ParseToScene(string svg)
+        {
+            var reader = new StringReader(svg);
+            return SVGParser.ImportSVG(reader).Scene;
+        }
+
+        public Sprite ParseToSprite(string svg)
+        {
+            var geometry = _InitFromString(svg, out Rect rect);
+            return BuildSpriteFromGeometry(geometry, rect);
+        }
+
         public Texture2D ParseToTexture(string svg, string name)
         {
             var geometry = _InitFromString(svg, out Rect rect);
