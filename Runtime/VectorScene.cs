@@ -107,6 +107,17 @@ namespace Unity.VectorGraphics
 
         /// <summary>Second control point of the segment.</summary>
         public Vector2 P2;
+
+        public Vector2 GetPointAtT(float t)
+        {
+            float u = 1 - t;
+            float tt = t * t;
+            float uu = u * u;
+            Vector2 p = uu * P0;
+            p += 2 * u * t * P1;
+            p += tt * P2;
+            return p;
+        }
     }
 
     /// <summary>A chain of bezier paths, optionnally closed.</summary>
@@ -122,6 +133,31 @@ namespace Unity.VectorGraphics
         ///  last path segment's P1 and P2 as control points.
         /// </remarks>
         public bool Closed { get; set; }
+
+        public Vector2 GetPointAtT(float t)
+        {
+            int segmentCount = Closed ? Segments.Length : Segments.Length - 1;
+            float segmentLength = 1f / segmentCount;
+            int segmentIndex = Math.Min((int)(t / segmentLength), segmentCount - 1);
+            float localT = (t - segmentLength * segmentIndex) / segmentLength;
+
+            BezierPathSegment segment;
+            if (Closed && segmentIndex == Segments.Length)
+            {
+                segment = new BezierPathSegment
+                {
+                    P0 = Segments[segmentIndex].P2,
+                    P1 = Segments[0].P0,
+                    P2 = Segments[0].P1
+                };
+            }
+            else
+            {
+                segment = Segments[segmentIndex];
+            }
+            return segment.GetPointAtT(localT);
+        }
+
     }
 
     /// <summary>The IFill interface is implemented by filling techniques (solid, texture or gradient).</summary>
@@ -177,7 +213,7 @@ namespace Unity.VectorGraphics
     }
 
     /// <summary>Fills a shape with a texture.</summary>
-    public class TextureFill : IFill 
+    public class TextureFill : IFill
     {
         /// <summary>The texture to fill the shape with.</summary>
         public Texture2D Texture { get; set; }
