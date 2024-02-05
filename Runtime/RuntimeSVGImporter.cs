@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -296,12 +295,23 @@ namespace Unity.VectorGraphics
             return VectorUtils.TessellateScene(sceneInfo.Scene, tessOptions, sceneInfo.NodeOpacity);
         }
 
+        public Mesh ImportAsMesh(string assetPath)
+        {
+            return ImportAsMesh(assetPath, Matrix4x4.identity);
+        }
 
-        public Mesh ImportAsMesh(string assetPath, bool flipYAxis = false)
+
+        public Mesh ImportAsMesh(string assetPath, bool flipYAxis)
+        {
+            var tr = Matrix4x4.Scale(new Vector3(1, flipYAxis ? -1 : 1, 1));
+            return ImportAsMesh(assetPath, tr);
+        }
+
+        public Mesh ImportAsMesh(string assetPath, Matrix4x4 tr)
         {
             var mesh = new Mesh();
             var geometry = _InitFromFile(assetPath, out Rect rect);
-            VectorUtils.FillMesh(mesh, geometry, 1.0f, flipYAxis);
+            VectorUtils.FillMesh(mesh, geometry, 1.0f, tr);
             return mesh;
         }
 
@@ -320,18 +330,29 @@ namespace Unity.VectorGraphics
             return GeometryToTexture(geometry, rect, name);
         }
 
-        public Mesh ParseToMesh(string svg, bool flipYAxis = false)
+        public Mesh ParseToMesh(string svg)
+        {
+            return ParseToMesh(svg, Matrix4x4.identity);
+        }
+
+        public Mesh ParseToMesh(string svg, bool flipYAxis)
+        {
+            var tr = Matrix4x4.Scale(new Vector3(1, flipYAxis ? -1 : 1, 1));
+            return ParseToMesh(svg, tr);
+        }
+
+        public Mesh ParseToMesh(string svg, Matrix4x4 tr)
         {
             var mesh = new Mesh();
             var geometry = _InitFromString(svg, out Rect rect);
-            VectorUtils.FillMesh(mesh, geometry, 1.0f, flipYAxis);
+            VectorUtils.FillMesh(mesh, geometry, 1.0f, tr);
             return mesh;
         }
 
-        public Scene ParseToScene(string svg)
+        public SVGParser.SceneInfo ParseToSceneInfo(string svg)
         {
             var reader = new StringReader(svg);
-            return SVGParser.ImportSVG(reader).Scene;
+            return SVGParser.ImportSVG(reader);
         }
 
         public Sprite ParseToSprite(string svg)
@@ -344,6 +365,19 @@ namespace Unity.VectorGraphics
         {
             var geometry = _InitFromString(svg, out Rect rect);
             return GeometryToTexture(geometry, rect, name);
+        }
+
+        public Mesh SceneInfoToMesh(SVGParser.SceneInfo sceneInfo)
+        {
+            return SceneInfoToMesh(sceneInfo, Matrix4x4.identity);
+        }
+
+        public Mesh SceneInfoToMesh(SVGParser.SceneInfo sceneInfo, Matrix4x4 tr)
+        {
+            var mesh = new Mesh();
+            var geometry = _Init(sceneInfo, out Rect rect);
+            VectorUtils.FillMesh(mesh, geometry, 1.0f, tr);
+            return mesh;
         }
 
         public string WrapSvgPath(string svgPath)
