@@ -372,6 +372,12 @@ namespace Unity.VectorGraphics
             return SceneInfoToMesh(sceneInfo, Matrix4x4.identity);
         }
 
+        public Mesh SceneInfoToMesh(SVGParser.SceneInfo sceneInfo, bool flipYAxis)
+        {
+            var tr = Matrix4x4.Scale(new Vector3(1, flipYAxis ? -1 : 1, 1));
+            return SceneInfoToMesh(sceneInfo, tr);
+        }
+
         public Mesh SceneInfoToMesh(SVGParser.SceneInfo sceneInfo, Matrix4x4 tr)
         {
             var mesh = new Mesh();
