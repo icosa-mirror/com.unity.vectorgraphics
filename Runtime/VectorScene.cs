@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Unity.VectorGraphics
@@ -340,6 +341,41 @@ namespace Unity.VectorGraphics
 
         /// <summary>A clipper hierarchy that will clip this node.</summary>
         public SceneNode Clipper { get; set; }
+
+        // Return a new dictionary of nodeIds that exist under this node
+        // Exclude the node itself. n.b. This would be cleaner if we stored ids in nodes
+        public Dictionary<string, SceneNode> PruneIds(Dictionary<string, SceneNode> nodeIDs)
+        {
+            var nodeIsValid = new Dictionary<SceneNode, bool>();
+            var nodesToCheck = nodeIDs.Values.ToList();
+            nodesToCheck.Remove(this);
+            foreach (var node in nodeIDs)
+            {
+                nodeIsValid[node.Value] = false;
+            }
+            // Recurse the hierarchy and check if the node is in the nodes list
+            void MarkNodes(SceneNode node)
+            {
+                if (nodesToCheck.Contains(node))
+                {
+                    nodeIsValid[node] = true;
+                }
+                foreach (var child in node.Children)
+                {
+                    MarkNodes(child);
+                }
+            }
+            MarkNodes(this);
+            var pruned = new Dictionary<string, SceneNode>();
+            foreach (var node in nodeIDs)
+            {
+                if (nodeIsValid[node.Value])
+                {
+                    pruned[node.Key] = node.Value;
+                }
+            }
+            return pruned;
+        }
     }
 
     /// <summary>A scene contains the whole node hierarchy.</summary>

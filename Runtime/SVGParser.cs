@@ -5,7 +5,6 @@ using System.Globalization;
 using System.Xml;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Unity.VectorGraphics
 {
@@ -52,6 +51,35 @@ namespace Unity.VectorGraphics
 
             /// <summary>A dictionary containing the scene node for a given ID</summary>
             public Dictionary<string, SceneNode> NodeIDs { get; }
+
+            public SceneInfo FromNodeId(string id)
+            {
+                var node = NodeIDs[id];
+                return FromNode(node);
+            }
+
+            public SceneInfo FromChildIndex(int index)
+            {
+                var node = Scene.Root.Children[index];
+                return FromNode(node);
+            }
+
+            public SceneInfo FromNode(SceneNode node)
+            {
+                Scene.Root = node;
+                var newScene = new Scene();
+                newScene.Root = node;
+                var newSceneInfo = new SceneInfo(
+                    newScene,
+                    SceneViewport,
+                    new Dictionary<SceneNode, float>
+                    {
+                        {node, NodeOpacity[node]}
+                    },
+                    node.PruneIds(NodeIDs)
+                );
+                return newSceneInfo;
+            }
         }
 
         /// <summary>Kicks off an SVG file import.</summary>
