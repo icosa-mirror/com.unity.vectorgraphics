@@ -66,7 +66,6 @@ namespace Unity.VectorGraphics
 
             public SceneInfo FromNode(SceneNode node)
             {
-                Scene.Root = node;
                 var newScene = new Scene();
                 newScene.Root = node;
                 var newSceneInfo = new SceneInfo(
