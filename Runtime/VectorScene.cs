@@ -378,6 +378,13 @@ namespace Unity.VectorGraphics
             }
             return pruned;
         }
+
+        // TODO
+        public Dictionary<SceneNode, float> PruneOpacities(Dictionary<SceneNode, float> opacities)
+        {
+            Debug.LogWarning($"Opacity pruning not currently implemented");
+            return opacities;
+        }
     }
 
     /// <summary>A scene contains the whole node hierarchy.</summary>

@@ -71,10 +71,7 @@ namespace Unity.VectorGraphics
                 var newSceneInfo = new SceneInfo(
                     newScene,
                     SceneViewport,
-                    new Dictionary<SceneNode, float>
-                    {
-                        {node, NodeOpacity[node]}
-                    },
+                    node.PruneOpacities(NodeOpacity),
                     node.PruneIds(NodeIDs)
                 );
                 return newSceneInfo;
