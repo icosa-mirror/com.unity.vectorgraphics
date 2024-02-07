@@ -360,6 +360,8 @@ namespace Unity.VectorGraphics
                 {
                     nodeIsValid[node] = true;
                 }
+
+                if (node.Children == null) return;
                 foreach (var child in node.Children)
                 {
                     MarkNodes(child);
