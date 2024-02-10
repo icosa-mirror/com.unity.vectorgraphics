@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -265,10 +266,8 @@ namespace Unity.VectorGraphics
             return _Init(sceneInfo, out rect);
         }
 
-        private List<VectorUtils.Geometry> _Init(SVGParser.SceneInfo sceneInfo, out Rect rect)
+        public VectorUtils.TessellationOptions GenerateTessellationOptions(SVGParser.SceneInfo sceneInfo)
         {
-            if (sceneInfo.Scene == null || sceneInfo.Scene.Root == null)
-                throw new Exception("Wowzers!");
 
             float stepDist = StepDistance;
             float samplingStepDist = SamplingStepDistance;
@@ -282,17 +281,26 @@ namespace Unity.VectorGraphics
                 ComputeTessellationOptions(sceneInfo, TargetResolution, ResolutionMultiplier, out stepDist, out maxCord,
                     out maxTangent);
             }
-
+            
             var tessOptions = new VectorUtils.TessellationOptions();
             tessOptions.MaxCordDeviation = maxCord;
             tessOptions.MaxTanAngleDeviation = maxTangent;
             tessOptions.SamplingStepSize = 1.0f / samplingStepDist;
             tessOptions.StepDistance = stepDist;
 
+            return tessOptions;
+        }
+
+        private List<VectorUtils.Geometry> _Init(SVGParser.SceneInfo sceneInfo, out Rect rect)
+        {
+            if (sceneInfo.Scene == null || sceneInfo.Scene.Root == null)
+                throw new Exception("Wowzers!");
+
+
             rect = Rect.zero;
             if (ViewportOptions == ViewportOptions.PreserveViewport)
                 rect = sceneInfo.SceneViewport;
-            return VectorUtils.TessellateScene(sceneInfo.Scene, tessOptions, sceneInfo.NodeOpacity);
+            return VectorUtils.TessellateScene(sceneInfo.Scene, GenerateTessellationOptions(sceneInfo), sceneInfo.NodeOpacity);
         }
 
         public Mesh ImportAsMesh(string assetPath)
@@ -346,6 +354,110 @@ namespace Unity.VectorGraphics
             var mesh = new Mesh();
             var geometry = _InitFromString(svg, out Rect rect);
             VectorUtils.FillMesh(mesh, geometry, 1.0f, tr);
+            return mesh;
+        }
+
+        public Mesh ParseToMesh(string svg, Matrix4x4 tr, float extrusionDepth)
+        {
+
+            void getShapes(SceneNode node, List<Shape> shapes, List<Matrix2D> transforms)
+            {
+                if (node.Shapes != null)
+                {
+                    shapes.AddRange(node.Shapes);
+                    transforms.AddRange(Enumerable.Repeat(node.Transform, node.Shapes.Count));
+                }
+
+                if (node.Children != null)
+                {
+                    foreach (var child in node.Children)
+                    {
+                        getShapes(child, shapes, transforms);
+                    }
+                }
+            }
+
+            var meshes = new List<Mesh>();
+            var sceneInfo = ParseToSceneInfo(svg);
+            var tessOptions = GenerateTessellationOptions(sceneInfo);
+
+            var shapes = new List<Shape>();
+            var transforms = new List<Matrix2D>();
+            getShapes(sceneInfo.Scene.Root, shapes, transforms);
+
+            for (var i = 0; i < shapes.Count; i++)
+            {
+                var shape = shapes[i];
+                var transform2D = transforms[i];
+
+                // Extrude each contour
+                for (var j = 0; j < shape.Contours.Length; j++)
+                {
+                    var contour = shape.Contours[j];
+                    var boundary2d = VectorUtils.TraceShape(contour, shape.PathProps.Stroke, tessOptions);
+                    var vertexCount = boundary2d.Length * 2;
+                    var vertices3d = new Vector3[vertexCount];
+                    var triangles = new int[boundary2d.Length * 6];
+                    var colors = new Color[vertexCount];
+
+                    for (var k = 0; k < boundary2d.Length; k++)
+                    {
+                        var vertex2d = transform2D.MultiplyPoint(boundary2d[k]);
+                        int vertIndex = k * 2;
+                        vertices3d[vertIndex] = new Vector3(vertex2d.x, vertex2d.y, 0);
+                        vertices3d[vertIndex + 1] = new Vector3(vertex2d.x, vertex2d.y, extrusionDepth);
+                        triangles[k * 6] = (vertIndex + 0) % vertexCount;
+                        triangles[k * 6 + 1] = (vertIndex + 3) % vertexCount;
+                        triangles[k * 6 + 2] = (vertIndex + 1) % vertexCount;
+
+                        triangles[k * 6 + 3] = (vertIndex + 3) % vertexCount;
+                        triangles[k * 6 + 4] = (vertIndex + 0) % vertexCount;
+                        triangles[k * 6 + 5] = (vertIndex + 2) % vertexCount;
+
+                        // TODO handle other fill types
+                        if (shape.Fill is SolidFill solidFill)
+                        {
+                            colors[vertIndex] = solidFill.Color;
+                            colors[vertIndex + 1] = solidFill.Color;
+                        }
+                    }
+
+                    meshes.Add(new Mesh
+                    {
+                        vertices = vertices3d,
+                        triangles = triangles,
+                        colors = colors
+                    });
+                }
+            }
+
+            var frontMesh = ParseToMesh(svg);
+            meshes.Add(frontMesh);
+
+            var backMesh = GameObject.Instantiate(frontMesh);
+            int[] backTriangles = backMesh.triangles;
+            for (int i = 0; i < backTriangles.Length; i += 3)
+            {
+                (backTriangles[i], backTriangles[i + 2]) = (backTriangles[i + 2], backTriangles[i]);
+            }
+            backMesh.triangles = backTriangles;
+            meshes.Add(backMesh);
+
+            CombineInstance[] combine = new CombineInstance[meshes.Count];
+            for (var i = 0; i < meshes.Count; i++)
+            {
+                combine[i].mesh = meshes[i];
+                combine[i].transform = tr;
+            }
+
+            var backTr = combine[^1].transform;
+            backTr.m23 = extrusionDepth;
+            combine[^1].transform = backTr;
+
+            var mesh = new Mesh();
+            mesh.CombineMeshes(combine, mergeSubMeshes: true, useMatrices: true);
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
             return mesh;
         }
 

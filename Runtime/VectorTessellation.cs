@@ -131,7 +131,7 @@ namespace Unity.VectorGraphics
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        static Vector2[] TraceShape(BezierContour contour, Stroke stroke, TessellationOptions tessellateOptions)
+        internal static Vector2[] TraceShape(BezierContour contour, Stroke stroke, TessellationOptions tessellateOptions)
         {
             if (tessellateOptions.StepDistance < Epsilon)
                 throw new Exception("stepDistance too small");
