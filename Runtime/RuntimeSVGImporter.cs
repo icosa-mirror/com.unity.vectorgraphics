@@ -359,6 +359,12 @@ namespace Unity.VectorGraphics
 
         public Mesh ParseToMesh(string svg, Matrix4x4 tr, float extrusionDepth)
         {
+            var sceneInfo = ParseToSceneInfo(svg);
+            return SceneInfoToMesh(sceneInfo, tr, extrusionDepth);
+        }
+
+        public Mesh SceneInfoToMesh(SVGParser.SceneInfo sceneInfo, Matrix4x4 tr, float extrusionDepth)
+        {
 
             void getShapes(SceneNode node, List<Shape> shapes, List<Matrix2D> transforms)
             {
@@ -378,7 +384,6 @@ namespace Unity.VectorGraphics
             }
 
             var meshes = new List<Mesh>();
-            var sceneInfo = ParseToSceneInfo(svg);
             var tessOptions = GenerateTessellationOptions(sceneInfo);
 
             var shapes = new List<Shape>();
@@ -431,7 +436,7 @@ namespace Unity.VectorGraphics
                 }
             }
 
-            var frontMesh = ParseToMesh(svg);
+            var frontMesh = SceneInfoToMesh(sceneInfo);
             meshes.Add(frontMesh);
 
             var backMesh = GameObject.Instantiate(frontMesh);
