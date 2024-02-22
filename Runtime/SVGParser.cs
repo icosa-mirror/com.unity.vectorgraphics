@@ -76,6 +76,31 @@ namespace Unity.VectorGraphics
                 );
                 return newSceneInfo;
             }
+
+            public bool HasSubShapes()
+            {
+                return _countSubShapes(Scene.Root , 2) >= 2;
+            }
+
+            private static int _countSubShapes(SceneNode node, int limit = 100)
+            {
+                int count = 0;
+                if (node is { Shapes: not null })
+                {
+                    count += node.Shapes.Count;
+                    if (count > limit) return count;
+                }
+
+                if (node.Children != null)
+                {
+                    foreach (var child in node.Children)
+                    {
+                        count += _countSubShapes(child, limit - count);
+                        if (count > limit) return count;
+                    }
+                }
+                return count;
+            }
         }
 
         /// <summary>Kicks off an SVG file import.</summary>

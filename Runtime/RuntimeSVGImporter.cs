@@ -281,7 +281,7 @@ namespace Unity.VectorGraphics
                 ComputeTessellationOptions(sceneInfo, TargetResolution, ResolutionMultiplier, out stepDist, out maxCord,
                     out maxTangent);
             }
-            
+
             var tessOptions = new VectorUtils.TessellationOptions();
             tessOptions.MaxCordDeviation = maxCord;
             tessOptions.MaxTanAngleDeviation = maxTangent;
@@ -690,6 +690,11 @@ namespace Unity.VectorGraphics
             }
 
             return mat;
+        }
+
+        public SVGParser.SceneInfo ImportAsSceneInfo(string filePath)
+        {
+            return ParseToSceneInfo(File.ReadAllText(filePath));
         }
     }
 }
