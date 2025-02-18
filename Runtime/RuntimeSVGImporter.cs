@@ -411,13 +411,14 @@ namespace Unity.VectorGraphics
                         int vertIndex = k * 2;
                         vertices3d[vertIndex] = new Vector3(vertex2d.x, vertex2d.y, 0);
                         vertices3d[vertIndex + 1] = new Vector3(vertex2d.x, vertex2d.y, extrusionDepth);
-                        triangles[k * 6] = (vertIndex + 0) % vertexCount;
-                        triangles[k * 6 + 1] = (vertIndex + 3) % vertexCount;
-                        triangles[k * 6 + 2] = (vertIndex + 1) % vertexCount;
+
+                        triangles[k * 6 + 0] = (vertIndex + 0) % vertexCount;
+                        triangles[k * 6 + 1] = (vertIndex + 1) % vertexCount;
+                        triangles[k * 6 + 2] = (vertIndex + 3) % vertexCount;
 
                         triangles[k * 6 + 3] = (vertIndex + 3) % vertexCount;
-                        triangles[k * 6 + 4] = (vertIndex + 0) % vertexCount;
-                        triangles[k * 6 + 5] = (vertIndex + 2) % vertexCount;
+                        triangles[k * 6 + 4] = (vertIndex + 2) % vertexCount;
+                        triangles[k * 6 + 5] = (vertIndex + 0) % vertexCount;
 
                         // TODO handle other fill types
                         if (shape.Fill is SolidFill solidFill)
